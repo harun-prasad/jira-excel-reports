@@ -106,7 +106,7 @@ class XlsxHelper:
             user_next_task_hours = 0
             # Initializing excel write row and column positions
             for worklog_date in utils.general_utils.daterange(self.work_log_start_date,self.work_log_end_date):
-                print(worklog_date)
+                # print(worklog_date)
                 day_worklog_hours_filled = 0
                 worklog_date_str = datetime.datetime.strftime(worklog_date,"%Y-%m-%d")
                 if worklog_date_str not in worklogged_dates:
@@ -216,4 +216,4 @@ class XlsxHelper:
 
 if __name__ == "__main__":
     objxlsx = XlsxHelper()
-    objxlsx.create_report_template(jx_config.jira_worklog_users,jx_config.work_log_start_date, jx_config.work_log_end_date, ["2019-12-11"])
+    objxlsx.create_report_template(jx_config.jira_worklog_users,jx_config.work_log_start_date, jx_config.work_log_end_date, ["2022-05-10"])

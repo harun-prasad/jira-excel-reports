@@ -1,6 +1,7 @@
 import json
 from jira import JIRA
 import datetime
+import pytz
 
 # Project imports
 import utils.general_utils
@@ -12,6 +13,12 @@ class JiraHelper:
     def __init__(self, server, username, password):
         self.jira = JIRA({"server" : server}, basic_auth=(username, password))
         self.clear()
+        
+
+    def get_users_displayname(self, worklog_users):
+        for user in worklog_users:
+            jira_user = self.jira.search_users(query=user)
+            self.user_displayname[jira_user[0].displayName] = user
 
     def clear(self):
         self.worklogged_issues = []
@@ -19,10 +26,12 @@ class JiraHelper:
         self.worklog_end_date = None
         self.high_worklog_tasks = None
         self.worklogged_dates = []
+        self.user_displayname = {}
     
 
     def search_issues_jql(self, worklog_users, worklog_start_date, worklog_end_date, additional_fields):
         self.clear()
+        self.get_users_displayname(worklog_users)
         jql_string = ""
         if worklog_users and len(worklog_users) > 0:
             #TODO Add logic to verify the users in JIRA server if users not in list raise value error
@@ -78,9 +87,10 @@ class JiraHelper:
                 worklog_date_str = worklog.started[:10]
                 if worklog_date_str not in self.worklogged_dates:
                     self.worklogged_dates.append(worklog_date_str)
-                user = worklog.author.key
+                user = self.user_displayname[worklog.author.displayName]
                 worklog_hours = worklog.timeSpentSeconds/60.0/60.0
-                worklog_text = "(" + worklog.timeSpent + ") " + getattr(worklog, "comment", "")
+                worklog_text = datetime.datetime.fromisoformat(worklog.started[:-2] + ":" + worklog.started[-2:]).astimezone(pytz.timezone('Asia/Kolkata')).strftime("%H:%M:%S") + "(" + worklog.timeSpent + " at " + worklog.updated + ") " + getattr(worklog, "comment", "")
+
                 worklog_id = worklog.id
                 if user not in userwise_worklog: userwise_worklog[user] ={}
                 if worklog_date_str not in userwise_worklog[user]: userwise_worklog[user][worklog_date_str] = {}
